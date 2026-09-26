@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+.env
+.env.*
+!.env.example
+dist/
+build/
+coverage/
+*.log
+Feedants_Full_Stack_Development_Internship_Technical_Assignment.zip
+Feedants_Full_Stack_Development_Internship_Technical_Assignment/
