@@ -4,7 +4,7 @@ A React Native competition details screen backed by a Node.js, Express, and Mong
 
 ## Requirements
 
-- Node.js 20 or newer
+- Node.js 22.13 or newer for Expo SDK 57 (the backend itself requires Node.js 20+)
 - MongoDB (local instance or hosted URI)
 - Expo-compatible iOS simulator, Android emulator, or device
 
