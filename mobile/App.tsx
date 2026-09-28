@@ -7,7 +7,6 @@ import {
   Modal,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   Share,
   StatusBar,
@@ -16,6 +15,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { confirmDemoPayment, getCompetition, joinCompetition, submitCompetitionEntry } from './src/api';
 import { Competition, CompetitionStatus } from './src/types';
 
@@ -165,12 +165,13 @@ export default function App() {
     catch { Alert.alert('Referral link', REFERRAL_URL); }
   };
 
-  if (loading && !competition) return <SafeAreaView style={styles.center}><StatusBar barStyle="dark-content" /><ActivityIndicator size="large" color={TEAL} /><Text style={styles.loadingText}>Loading competition…</Text></SafeAreaView>;
-  if (!competition) return <SafeAreaView style={styles.center}><StatusBar barStyle="dark-content" /><Text style={styles.errorTitle}>Competition unavailable</Text><Text style={styles.loadingText}>Connect to the API and try again.</Text><Pressable style={styles.retry} onPress={() => void load()}><Text style={styles.primaryText}>Try again</Text></Pressable></SafeAreaView>;
+  if (loading && !competition) return <SafeAreaProvider style={styles.safe}><SafeAreaView style={styles.center}><StatusBar barStyle="dark-content" /><ActivityIndicator size="large" color={TEAL} /><Text style={styles.loadingText}>Loading competition…</Text></SafeAreaView></SafeAreaProvider>;
+  if (!competition) return <SafeAreaProvider style={styles.safe}><SafeAreaView style={styles.center}><StatusBar barStyle="dark-content" /><Text style={styles.errorTitle}>Competition unavailable</Text><Text style={styles.loadingText}>Connect to the API and try again.</Text><Pressable style={styles.retry} onPress={() => void load()}><Text style={styles.primaryText}>Try again</Text></Pressable></SafeAreaView></SafeAreaProvider>;
 
   const visibleDescription = expanded ? competition.description : `${competition.description.slice(0, 178)}${competition.description.length > 178 ? '…' : ''}`;
 
   return (
+    <SafeAreaProvider style={styles.safe}>
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#f7f9fc" />
       <View style={styles.topBar}>
@@ -227,8 +228,9 @@ export default function App() {
       <Modal visible={submissionModal} transparent animationType="fade" onRequestClose={() => setSubmissionModal(false)}>
         <View style={styles.modalBackdrop}><View style={styles.modalCard}><Text style={styles.modalTitle}>Submit your entry</Text><Text style={styles.infoDetail}>Paste a public video link (YouTube, Vimeo, or another accessible URL).</Text><TextInput value={submissionUrl} onChangeText={setSubmissionUrl} autoCapitalize="none" keyboardType="url" placeholder="https://" placeholderTextColor="#8a96ad" style={styles.urlInput} accessibilityLabel="Submission video URL" /><View style={styles.modalActions}><Pressable onPress={() => setSubmissionModal(false)} style={styles.cancelButton}><Text style={styles.cancelText}>Cancel</Text></Pressable><Pressable onPress={() => void sendSubmission()} disabled={submitting || !submissionUrl.trim()} style={[styles.referButton, (submitting || !submissionUrl.trim()) && styles.primaryDisabled]}>{submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryText}>Submit</Text>}</Pressable></View></View></View>
       </Modal>
-      <View style={styles.bottomNav}>{[['⌂', 'Home'], ['⌕', 'Explore'], ['＋', 'Create'], ['♜', 'Competitions'], ['●', 'Profile']].map(([icon, label]) => <Pressable key={label} onPress={() => label === 'Competitions' ? undefined : Alert.alert(label, `${label} navigation coming soon.`)} style={styles.navItem}><Text style={[styles.navIcon, label === 'Competitions' && styles.navActive]}>{icon}</Text><Text style={[styles.navLabel, label === 'Competitions' && styles.navActive]}>{label}</Text></Pressable>)}</View>
+      <View style={styles.bottomNav}>{[['⌂', 'Home'], ['⌕', 'Explore'], ['＋', 'Create'], ['♜', 'Competitions'], ['●', 'Profile']].map(([icon, label]) => <Pressable key={label} accessibilityRole="button" accessibilityLabel={label} onPress={() => label === 'Competitions' ? undefined : Alert.alert(label, `${label} navigation coming soon.`)} style={styles.navItem}><View style={styles.navIconSlot}>{label === 'Create' ? <View style={styles.createNavButton}><Text style={styles.createNavGlyph}>＋</Text></View> : label === 'Profile' ? <View style={styles.profileNavAvatar}><Text style={styles.profileNavInitial}>K</Text></View> : <Text style={[styles.navIcon, label === 'Competitions' && styles.navActive]}>{icon}</Text>}</View><Text style={[styles.navLabel, label === 'Competitions' && styles.navActive]}>{label}</Text></Pressable>)}</View>
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -247,6 +249,6 @@ const styles = StyleSheet.create({
   rewardHeading: { color: INK, fontWeight: '800', fontSize: 15, marginBottom: 7 }, rewardSubheading: { color: MUTED, fontSize: 13, fontWeight: '500' }, rewardRow: { minHeight: 33, flexDirection: 'row', alignItems: 'center', backgroundColor: '#f7f9fc', borderRadius: 7, marginTop: 4, paddingHorizontal: 8 }, rewardMedal: { width: 30, fontSize: 17 }, rewardPlace: { flex: 1, color: INK, fontSize: 13, fontWeight: '700' }, rewardAmount: { color: TEAL, fontSize: 16, fontWeight: '800' },
   disclaimer: { minHeight: 36, borderRadius: 10, backgroundColor: '#e9f6f5', alignItems: 'center', flexDirection: 'row', paddingHorizontal: 12, gap: 8 }, disclaimerIcon: { color: TEAL, fontSize: 19 }, disclaimerText: { color: INK, fontSize: 11, flex: 1 }, twoCards: { flexDirection: 'row', gap: 8 }, halfCard: { flex: 1, minHeight: 92, flexDirection: 'row', alignItems: 'center', padding: 11, gap: 8 }, videoTile: { width: 43, height: 48, borderRadius: 12, backgroundColor: '#d8f3e8', alignItems: 'center', justifyContent: 'center' }, halfCopy: { flex: 1 }, cardHeadline: { color: INK, fontSize: 13, fontWeight: '800' }, paymentLine: { color: INK, fontSize: 12, lineHeight: 26 },
   referral: { minHeight: 90, backgroundColor: '#e6f8ee', flexDirection: 'row', alignItems: 'center', gap: 9, padding: 12 }, megaphone: { color: TEAL, fontSize: 29, transform: [{ rotate: '-25deg' }] }, referralCopy: { flex: 1 }, referralLink: { color: TEAL, fontSize: 10, marginVertical: 4 }, referButton: { backgroundColor: TEAL, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 }, primaryText: { color: '#fff', fontWeight: '800', textAlign: 'center' }, reviews: { minHeight: 58, borderRadius: 15, backgroundColor: '#fff', borderColor: '#edf0f5', borderWidth: 1, flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10 }, reviewIcon: { color: INK, fontSize: 22 }, reviewCopy: { flex: 1 }, chevron: { color: INK, fontSize: 27 }, adSlot: { height: 40, borderRadius: 9, borderWidth: 1, borderStyle: 'dashed', borderColor: '#cbd5e4', alignItems: 'center', justifyContent: 'center' },
-  primaryButton: { minHeight: 52, marginHorizontal: 14, marginBottom: 4, borderRadius: 11, backgroundColor: TEAL, justifyContent: 'center', alignItems: 'center' }, primaryDisabled: { backgroundColor: '#8eaeb0' }, primarySubtext: { color: '#eafafa', fontSize: 11, marginTop: 1 }, bottomNav: { minHeight: 54, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', borderTopWidth: 1, borderColor: BORDER }, navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 54, gap: 1 }, navIcon: { color: '#8c96b0', fontSize: 21 }, navLabel: { color: MUTED, fontSize: 10 }, navActive: { color: TEAL, fontWeight: '800' }, loadingText: { color: MUTED, marginTop: 10 }, errorTitle: { color: INK, fontSize: 18, fontWeight: '800' }, retry: { backgroundColor: TEAL, padding: 12, borderRadius: 8, marginTop: 16 },
+  primaryButton: { minHeight: 52, marginHorizontal: 14, marginBottom: 5, borderRadius: 11, backgroundColor: TEAL, justifyContent: 'center', alignItems: 'center' }, primaryDisabled: { backgroundColor: '#8eaeb0' }, primarySubtext: { color: '#eafafa', fontSize: 11, marginTop: 1 }, bottomNav: { minHeight: 62, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop: 5, paddingBottom: 4, borderTopWidth: 1, borderColor: BORDER }, navItem: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 2 }, navIconSlot: { height: 30, alignItems: 'center', justifyContent: 'center' }, navIcon: { color: '#8c96b0', fontSize: 23 }, navLabel: { color: MUTED, fontSize: 11 }, navActive: { color: TEAL, fontWeight: '800' }, createNavButton: { width: 42, height: 42, marginTop: -11, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: TEAL }, createNavGlyph: { color: '#fff', fontSize: 28, lineHeight: 31 }, profileNavAvatar: { width: 27, height: 27, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#e1f2f0' }, profileNavInitial: { color: TEAL, fontSize: 12, fontWeight: '800' }, loadingText: { color: MUTED, marginTop: 10 }, errorTitle: { color: INK, fontSize: 18, fontWeight: '800' }, retry: { backgroundColor: TEAL, padding: 12, borderRadius: 8, marginTop: 16 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(16,35,74,0.45)', justifyContent: 'center', padding: 22 }, modalCard: { backgroundColor: '#fff', padding: 20, borderRadius: 16, gap: 12 }, modalTitle: { color: INK, fontSize: 19, fontWeight: '800' }, urlInput: { minHeight: 48, borderWidth: 1, borderColor: BORDER, borderRadius: 9, paddingHorizontal: 12, color: INK }, modalActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }, cancelButton: { padding: 11 }, cancelText: { color: MUTED, fontWeight: '700' },
 });
